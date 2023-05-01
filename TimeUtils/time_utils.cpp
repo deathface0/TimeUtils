@@ -2,9 +2,10 @@
 
 time_t TimeUtils::getUnixTimestamp()
 {
-    const auto p1 = std::chrono::system_clock::now();
-    return std::chrono::duration_cast<std::chrono::seconds>(
-        p1.time_since_epoch()).count();
+    auto now = std::chrono::system_clock::now();
+    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+    auto value = now_ms.time_since_epoch().count();
+    return value;
 }
 
 std::string TimeUtils::currentDateTime(std::string params) //"%Y-%m-%d %H:%M:%S" (24h)  /  "%Y-%m-%d %I:%M:%S %p" (12h)
@@ -29,14 +30,17 @@ time_t TimeUtils::TimeElapsed(time_t start, time_t end)
 
 std::string TimeUtils::timestampToDateTime(time_t timestamp, std::string params)
 {
-    std::tm time_info;
-#ifdef _WIN32
-    localtime_s(&time_info, &timestamp);
-#else
-    localtime_r(&timestamp, &time_info);
-#endif
+    // Convertir a std::chrono::time_point
+    std::chrono::milliseconds ms(timestamp);
+    std::chrono::time_point<std::chrono::system_clock> tp(ms);
+
+    // Convertir a std::tm
+    std::time_t tt = std::chrono::system_clock::to_time_t(tp);
+    std::tm tm = *std::localtime(&tt);
+
+    // Formatear como string
     std::stringstream ss;
-    ss << std::put_time(&time_info, params.c_str());
+    ss << std::put_time(&tm, params.c_str());
     return ss.str();
 }
 
