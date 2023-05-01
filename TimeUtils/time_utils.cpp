@@ -30,17 +30,16 @@ time_t TimeUtils::TimeElapsed(time_t start, time_t end)
 
 std::string TimeUtils::timestampToDateTime(time_t timestamp, std::string params)
 {
-    // Convertir a std::chrono::time_point
-    std::chrono::milliseconds ms(timestamp);
-    std::chrono::time_point<std::chrono::system_clock> tp(ms);
+    time_t m_timestamp = timestamp / 1000;
 
-    // Convertir a std::tm
-    std::time_t tt = std::chrono::system_clock::to_time_t(tp);
-    std::tm tm = *std::localtime(&tt);
-
-    // Formatear como string
+    std::tm time_info;
+#ifdef _WIN32
+    localtime_s(&time_info, &m_timestamp);
+#else
+    localtime_r(&m_timestamp, &time_info);
+#endif
     std::stringstream ss;
-    ss << std::put_time(&tm, params.c_str());
+    ss << std::put_time(&time_info, params.c_str());
     return ss.str();
 }
 
